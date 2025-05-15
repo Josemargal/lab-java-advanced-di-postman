@@ -82,7 +82,7 @@ Once you finish the assignment, submit a URL link to your repository or your pul
 - **Run and Validate:**
   - Use the Postman Collection Runner to execute your requests.
   - Test both the positive (discount applied) and negative (no discount) scenarios by toggling the property `feature.earlybird.enabled` and by varying the query parameters.
-
+![img.png](img.png)
 <br />
 
 ### 3. Documentation in README.md
@@ -90,11 +90,61 @@ Once you finish the assignment, submit a URL link to your repository or your pul
 Update your repository’s `README.md` to include:
 
 - A brief explanation of your design choices for the **EarlyBirdDiscountService**.
-- Answers to:
-  - Why did you choose constructor-based DI for this lab?
-  - What advantages do Postman pre-request and post-response scripts offer for automated testing?
-  - How does your application behave when the early bird feature is disabled?
-  - What are some challenges you faced when integrating advanced DI with API testing?
+
+  Este proyecto implementa un servicio de descuento por reserva anticipada utilizando Spring Boot con inyección de dependencias (DI) avanzada y configuración de beans condicionales.
+  Diseño del Servicio
+  El EarlyBirdDiscountService está diseñado para calcular descuentos basados en la fecha de reserva en relación con la fecha del evento. Las características principales incluyen:
+
+Regla de descuento: Se aplica un descuento del 15% cuando una reserva se realiza con al menos 30 días de anticipación a la fecha del evento.
+Validación de fechas: El servicio valida que las fechas proporcionadas sean coherentes (por ejemplo, la fecha de reserva no puede ser posterior a la fecha del evento).
+Objeto de resultado estructurado: El servicio devuelve un objeto DiscountResult que contiene tanto el porcentaje de descuento como un mensaje descriptivo.
+Configuración condicional: El servicio está configurado con @ConditionalOnProperty para que solo se active cuando la propiedad feature.earlybird.enabled esté establecida en true.
+
+- **Answers to:
+  - Why did you choose constructor-based DI for this lab?**
+  
+  
+    La inyección de dependencias basada en constructor se eligió por varias razones importantes:
+
+    Inmutabilidad: Al utilizar campos finales e inyección a través del constructor, se garantiza que las dependencias no puedan cambiarse después de la creación del objeto, lo que mejora la seguridad y previsibilidad del código.
+    Claridad en dependencias: El constructor hace explícitas las dependencias que requiere la clase, lo que mejora la legibilidad y el entendimiento del código.
+    Facilidad para pruebas: La DI basada en constructor facilita la creación de pruebas unitarias, ya que permite inyectar fácilmente mocks o stubs de las dependencias.
+    Manejo de dependencias opcionales: Como se muestra en DiscountController, podemos usar @Autowired(required = false) para manejar elegantemente escenarios donde la dependencia podría no estar disponible, lo cual es crucial cuando trabajamos con beans condicionales.
+    Mejor soporte para inmutabilidad y programación funcional: La DI basada en constructor se alinea mejor con los principios de inmutabilidad, lo que facilita el razonamiento sobre el comportamiento del código.
+
+
+  - **What advantages do Postman pre-request and post-response scripts offer for automated testing?**
+
+  
+    Los scripts de pre-solicitud y post-respuesta en Postman ofrecen varias ventajas significativas:
+
+    Preparación del entorno: Los scripts de pre-solicitud permiten establecer variables, realizar cálculos o registrar información antes de que se ejecute la solicitud, lo que ayuda a crear un entorno controlado para la prueba.
+    Validación automática: Los scripts post-respuesta permiten verificar automáticamente que la respuesta cumple con criterios específicos, como códigos de estado, estructura de respuesta y valores esperados.
+    Documentación en tiempo real: Al registrar información relevante, estos scripts proporcionan una documentación en tiempo real del comportamiento de la API, lo que facilita la identificación de problemas.
+    Pruebas condicionales: Permiten la ejecución de pruebas basadas en condiciones específicas, lo que facilita la creación de flujos de prueba más complejos y realistas.
+    Registro y depuración: El registro de información antes y después de las solicitudes facilita la identificación y resolución de problemas durante el desarrollo.
+
+
+  - **How does your application behave when the early bird feature is disabled?**
+
+  
+    Cuando la función de reserva anticipada está deshabilitada (es decir, cuando feature.earlybird.enabled=false en el archivo application.properties):
+
+    Bean no disponible: Spring no creará el bean EarlyBirdDiscountService debido a la anotación @ConditionalOnProperty.
+    Inyección nula: En el DiscountController, la inyección del servicio resultará en un valor nulo, lo cual es manejado gracias a @Autowired(required = false).
+    Comportamiento gracioso: Cuando se realiza una solicitud al endpoint /api/discount, el controlador detecta que el servicio no está disponible y devuelve una respuesta clara indicando que "La característica de descuento por reserva anticipada está deshabilitada".
+    Respuesta estructurada: La respuesta mantiene la misma estructura, incluyendo un porcentaje de descuento de 0%, un mensaje explicativo y un indicador featureEnabled establecido en false.
+
+    Este enfoque permite desactivar características específicas sin necesidad de modificar el código o reiniciar la aplicación, lo que es ideal para implementar estrategias de lanzamiento gradual o pruebas A/B.
+
+  - **What are some challenges you faced when integrating advanced DI with API testing?**
+
+
+    Manejo de beans condicionales: Uno de los principales desafíos fue diseñar un sistema que pudiera funcionar correctamente tanto cuando el servicio de descuento estaba habilitado como cuando no lo estaba, lo que requirió un cuidadoso manejo de la inyección de dependencias y comprobaciones de nulidad.
+    Pruebas para múltiples configuraciones: Diseñar pruebas que pudieran verificar el comportamiento del sistema en diferentes configuraciones (habilitado/deshabilitado) requirió un enfoque más complejo que las pruebas estándar.
+    Mensajes de error coherentes: Garantizar que la API proporcionara mensajes de error claros y útiles en todos los escenarios posibles fue un desafío, especialmente para mantener una experiencia de usuario consistente.
+    Validación de fechas: Manejar diferentes formatos de fecha y posibles errores de parseo mientras se mantenía una API robusta requirió implementar una validación y manejo de errores cuidadosos.
+    Scripts de prueba dinámicos: Crear scripts de Postman que pudieran adaptarse a diferentes respuestas basadas en la configuración del sistema requirió un enfoque más sofisticado para las pruebas automatizadas.
 
 <br />
 
